@@ -1,5 +1,7 @@
 # Aggiornamenti delle dipendenze (docs/security.md, catena di fornitura).
 # Il frontend (npm in /frontend) si aggiunge qui nella fase 6, quando esiste.
+# cooldown: una release resta in attesa qualche giorno prima di essere proposta, così una
+# versione compromessa ha il tempo di essere ritirata (gli aggiornamenti di sicurezza no).
 version: 2
 updates:
   - package-ecosystem: uv
@@ -7,6 +9,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     commit-message:
       prefix: "Aggiorna"
@@ -19,6 +23,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "Aggiorna"
 
@@ -26,5 +32,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "Aggiorna"
