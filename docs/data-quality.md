@@ -12,7 +12,7 @@ Ogni import passa questi controlli. Sono asset check di Dagster; ogni esito si s
 | 6 | Conteggi Transfermarkt | Partite, presenze e formazioni per stagione e competizione confrontate con football-data; minuti per squadra e partita intorno a 990 | `fail` sulla stagione se mancano partite; `warn` sui minuti |
 | 7 | Casi speciali | Partite a tavolino, sospese e rigiocate, penalizzazioni: solo da `curation/*.yaml` | `fail` se una fonte riporta un caso non curato |
 | 8 | Point-in-time | Nessuna feature usa righe con `known_period` che inizia dopo l'`as_of` dello snapshot | `fail` sempre; è un bug |
-| 9 | Slot saltati | Ogni riga di `ops.expected_slot` passata ha un `ops.job_run` corrispondente | `warn` a 15 minuti di ritardo, `fail` a 60 |
+| 9 | Slot saltati | Ogni riga di `ops.expected_slot` passata ha un `ops.job_run` corrispondente con stato `success` o `partial`. Una riga rimasta `running` oltre il timeout del job è un processo morto: lo slot conta come saltato | `warn` a 15 minuti di ritardo, `fail` a 60 |
 
 Le soglie sono proposte iniziali: si tarano sul backfill e si fissano in `src/soccer_analyst/quality/thresholds.py` con un commento che spiega da dove vengono.
 

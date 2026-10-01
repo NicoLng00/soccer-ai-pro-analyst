@@ -92,6 +92,6 @@ Due livelli, descritti in `docs/agents.md`:
 ## Sicurezza
 
 - Segreti solo in variabili d'ambiente; `.env` mai nel repository, mai letto da Claude Code (regola `deny`).
-- Ruoli Postgres oltre al proprietario: `sap_live`, `sap_backfill`, `sap_readonly` (usato dal server MCP), `sap_api` (API), `sap_useradmin` (solo comandi `sap admin`).
+- Ruoli Postgres oltre al proprietario: `sap_live`, `sap_backfill`, `sap_registry` (solo `sap registry sync`), `sap_readonly` (usato dal server MCP), `sap_api` (API), `sap_useradmin` (solo comandi `sap admin`).
 - Area amministrativa: accesso a due livelli (Cloudflare Access e autenticazione con TOTP), test di sicurezza continui per ogni endpoint, pentest prima della messa online. Dettagli in `docs/security.md`.
 - I dati di terze parti non entrano mai nel repository pubblico.
