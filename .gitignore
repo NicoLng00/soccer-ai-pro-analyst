@@ -1,7 +1,7 @@
 # Segreti: mai nel repository
+# Il modello delle variabili è env.example (senza punto iniziale): ogni .env* è un segreto.
 .env
 .env.*
-!.env.example
 secrets/
 
 # Dati di terze parti e dati generati: mai nel repository

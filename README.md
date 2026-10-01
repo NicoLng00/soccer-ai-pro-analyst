@@ -14,7 +14,7 @@ Il sistema impara dagli errori sulla calibrazione di centinaia di partite, non i
 
 ```bash
 git init && git add . && git commit -m "Importa il kit iniziale"
-cp .env.example .env               # poi cambia tutte le password
+cp env.example .env                # poi cambia tutte le password
 uv sync
 ./scripts/dev-up.sh                # Postgres 18 + SeaweedFS (S3), ruoli, bucket
 uv run sap registry validate       # registro di fonti e variabili
