@@ -21,6 +21,9 @@ DbRole = Literal["owner", "live", "backfill", "registry", "readonly", "api", "us
 
 LIBPQ_SCHEMES = {"postgresql", "postgres"}
 SQLALCHEMY_DRIVER = "postgresql+psycopg"
+# Query parameters that would override the user or credentials of the URL
+# (postgresql://sap_api:x@host/sap?user=sap_owner connects as sap_owner).
+FORBIDDEN_QUERY_KEYS = frozenset({"user", "password", "passfile", "service", "servicefile", "options"})
 
 
 class Environment(StrEnum):
@@ -65,11 +68,14 @@ class DatabaseSettings(BaseSettings):
         if value is None or not value.get_secret_value():
             msg = f"variabile mancante: {variable}"
             raise ConfigError(msg)
-        if role != "admin":
-            user = to_sqlalchemy_url(value, variable).username
-            if user != f"sap_{role}":
-                msg = f"{variable}: l'utente deve essere sap_{role}, trovato {user!r}"
+        user = to_sqlalchemy_url(value, variable).username
+        if role == "admin":
+            if load_app_settings().env is Environment.PROD:
+                msg = f"{variable}: il superutente non si usa in produzione"
                 raise ConfigError(msg)
+        elif user != f"sap_{role}":
+            msg = f"{variable}: l'utente deve essere sap_{role}, trovato {user!r}"
+            raise ConfigError(msg)
         return value
 
     def sqlalchemy_url(self, role: DbRole) -> URL:
@@ -90,17 +96,27 @@ class RawStoreSettings(BaseSettings):
 
 
 def to_sqlalchemy_url(libpq_url: SecretStr, variable: str) -> URL:
-    """Convert a libpq URI (postgresql://user:pass@host:port/db?opts) to SQLAlchemy psycopg form."""
+    """Convert a libpq URI (postgresql://user:pass@host:port/db?opts) to SQLAlchemy psycopg form.
+
+    Errors are raised outside the `except` blocks on purpose: a chained parser exception would
+    carry the raw URL, password included, into tracebacks and logs.
+    """
     try:
         url = make_url(libpq_url.get_secret_value())
-    except ArgumentError as exc:
+    except ArgumentError:
+        url = None
+    if url is None:
         msg = f"{variable}: non è un URL libpq (postgresql://utente:password@host:porta/database)"
-        raise ConfigError(msg) from exc
+        raise ConfigError(msg)
     if url.drivername not in LIBPQ_SCHEMES:
         msg = f"{variable}: schema {url.drivername!r} non ammesso, usa postgresql://"
         raise ConfigError(msg)
     if not url.username or not url.database:
         msg = f"{variable}: l'URL deve indicare utente e database"
+        raise ConfigError(msg)
+    overriding = sorted(FORBIDDEN_QUERY_KEYS.intersection(k.lower() for k in url.query))
+    if overriding:
+        msg = f"{variable}: parametri non ammessi nella query: {', '.join(overriding)}"
         raise ConfigError(msg)
     return url.set(drivername=SQLALCHEMY_DRIVER)
 
@@ -114,8 +130,10 @@ def load_app_settings() -> AppSettings:
     try:
         return AppSettings()
     except ValidationError as exc:
-        msg = f"variabili mancanti o non valide: {_missing_variables(exc, 'SAP_')}"
-        raise ConfigError(msg) from exc
+        missing = _missing_variables(exc, "SAP_")
+    # Raised outside `except`: pydantic's error text contains the other variables' values.
+    msg = f"variabili mancanti o non valide: {missing}"
+    raise ConfigError(msg)
 
 
 def load_database_settings() -> DatabaseSettings:
@@ -126,5 +144,6 @@ def load_raw_store_settings() -> RawStoreSettings:
     try:
         return RawStoreSettings()
     except ValidationError as exc:
-        msg = f"variabili mancanti o non valide: {_missing_variables(exc, 'SAP_RAW_')}"
-        raise ConfigError(msg) from exc
+        missing = _missing_variables(exc, "SAP_RAW_")
+    msg = f"variabili mancanti o non valide: {missing}"
+    raise ConfigError(msg)

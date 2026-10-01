@@ -44,3 +44,44 @@ def test_job_run_id_is_bound_inside_the_context(stream: io.StringIO) -> None:
 def test_level_filters_debug(stream: io.StringIO) -> None:
     get_logger("test").debug("hidden")
     assert lines(stream) == []
+
+
+def _connect(dsn: str) -> None:
+    password = "local-pw-value"  # noqa: S105 - fake value that must not reach the log
+    msg = f"connessione fallita per {dsn} ({len(password)})"
+    raise RuntimeError(msg)
+
+
+def test_exceptions_never_log_local_variables(stream: io.StringIO) -> None:
+    try:
+        _connect("postgresql://sap_live:url-pw-value@localhost/sap")
+    except RuntimeError:
+        get_logger("test").exception("errore")
+    output = stream.getvalue()
+    assert "errore" in output
+    assert "RuntimeError" in output
+    assert "local-pw-value" not in output
+    assert "url-pw-value" not in output
+
+
+def test_sensitive_keys_are_masked_at_any_depth(stream: io.StringIO) -> None:
+    get_logger("test").info(
+        "evento",
+        password="pw-1",  # noqa: S106 - fake value
+        api_key="key-2",
+        details={"session_token": "tok-3", "rows": 4, "nested": [{"Authorization": "Bearer abc"}]},
+    )
+    (event,) = lines(stream)
+    output = stream.getvalue()
+    for secret in ("pw-1", "key-2", "tok-3", "Bearer abc"):
+        assert secret not in output
+    assert event["password"] == "***"  # noqa: S105 - the mask, not a secret
+    assert event["details"] == {"session_token": "***", "rows": 4, "nested": [{"Authorization": "***"}]}
+
+
+def test_url_passwords_are_masked_in_any_string(stream: io.StringIO) -> None:
+    get_logger("test").info("connessione a postgresql://sap_api:s3cr3t@db:5432/sap", target="s3://k:v@host/b")
+    output = stream.getvalue()
+    assert "s3cr3t" not in output
+    assert "postgresql://sap_api:***@db:5432/sap" in output
+    assert "s3://k:***@host/b" in output

@@ -1,4 +1,5 @@
 import os
+import traceback
 
 import pytest
 from pydantic import SecretStr
@@ -62,8 +63,48 @@ def test_role_url_must_use_the_role_user(monkeypatch: pytest.MonkeyPatch) -> Non
 
 
 def test_admin_url_accepts_the_superuser(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SAP_ENV", "dev")
     monkeypatch.setenv("SAP_DB_URL_ADMIN", "postgresql://postgres:x@localhost:5432/sap")
     assert load_database_settings().sqlalchemy_url("admin").username == "postgres"
+
+
+def test_admin_url_is_refused_in_production(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SAP_ENV", "prod")
+    monkeypatch.setenv("SAP_DB_URL_ADMIN", "postgresql://postgres:x@localhost:5432/sap")
+    with pytest.raises(ConfigError, match="non si usa in produzione"):
+        load_database_settings().libpq_url("admin")
+
+
+@pytest.mark.parametrize("key", ["user", "USER", "password", "passfile", "service", "options"])
+def test_query_cannot_override_credentials(key: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    # libpq and psycopg let ?user= win over the user in the authority part.
+    monkeypatch.setenv("SAP_DB_URL_API", f"postgresql://sap_api:x@localhost:5432/sap?{key}=sap_owner")
+    with pytest.raises(ConfigError, match="parametri non ammessi"):
+        load_database_settings().libpq_url("api")
+
+
+def _traceback_text(exc: BaseException) -> str:
+    return "".join(traceback.format_exception(exc))
+
+
+def test_config_errors_do_not_carry_other_secrets(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SAP_RAW_ENDPOINT_URL", "http://127.0.0.1:8333")
+    monkeypatch.setenv("SAP_RAW_BUCKET", "sap-raw")
+    monkeypatch.setenv("SAP_RAW_ACCESS_KEY_ID", "FAKEKEYID-zz9")
+    with pytest.raises(ConfigError) as info:
+        load_raw_store_settings()
+    assert info.value.__cause__ is None
+    assert info.value.__context__ is None
+    assert "FAKEKEYID-zz9" not in _traceback_text(info.value)
+
+
+def test_malformed_url_error_does_not_carry_the_url() -> None:
+    # The value goes through a variable: the traceback prints the source line of each frame.
+    dsn = SecretStr("host=localhost password=FAKEPW-zz9")
+    with pytest.raises(ConfigError) as info:
+        to_sqlalchemy_url(dsn, "SAP_DB_URL_LIVE")
+    assert info.value.__context__ is None
+    assert "FAKEPW-zz9" not in _traceback_text(info.value)
 
 
 def test_empty_role_url_counts_as_missing(monkeypatch: pytest.MonkeyPatch) -> None:
