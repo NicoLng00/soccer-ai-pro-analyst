@@ -144,6 +144,10 @@ def test_guard_bash_blocks(command: str, feature_repo: Path) -> None:
         "grep -rn '\\.env\\.example' docs",
         "echo 'il modello è env.example'",
         "cat env.example",
+        # bare assignments and braces in arguments
+        "S=/tmp/x; echo ok",
+        "FOO=bar",
+        'curl -sS -o out.json -w "%{http_code}\\n" https://example.org',
     ],
 )
 def test_guard_bash_allows(command: str, feature_repo: Path) -> None:

@@ -131,7 +131,9 @@ def split_commands(command: str) -> tuple[list[list[str]], list[str]]:
             current.append(token)
         if current:
             commands.append(current)
-    return [_strip_prefixes(argv) for argv in commands if argv], redirects
+    # A bare assignment (S=/tmp/x;) is empty once the prefixes are gone.
+    stripped = [_strip_prefixes(argv) for argv in commands]
+    return [argv for argv in stripped if argv], redirects
 
 
 def _strip_prefixes(argv: list[str]) -> list[str]:
