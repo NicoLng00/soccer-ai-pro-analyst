@@ -11,9 +11,10 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import NoReturn
 
 
-def block(reason: str) -> None:
+def block(reason: str) -> NoReturn:
     print(reason, file=sys.stderr)
     sys.exit(2)
 
@@ -40,11 +41,15 @@ def main() -> None:
         block(f"{rel_posix}: i dati non si modificano a mano. Passa dalla pipeline.")
 
     if rel_posix.startswith("migrations/versions/") and path.exists():
-        tracked = subprocess.run(
-            ["git", "-C", str(project), "cat-file", "-e", f"HEAD:{rel_posix}"],
-            capture_output=True,
-            check=False,
-        )
+        try:
+            tracked = subprocess.run(
+                ["git", "-C", str(project), "cat-file", "-e", f"HEAD:{rel_posix}"],
+                capture_output=True,
+                check=False,
+            )
+        except OSError:
+            # Fail closed: without git we cannot tell whether the migration is committed.
+            block(f"{rel_posix}: git non disponibile, impossibile verificare se è già committata.")
         if tracked.returncode == 0:
             block(
                 f"{rel_posix} è una migrazione già committata e non si modifica. "

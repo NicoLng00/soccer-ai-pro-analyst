@@ -1,6 +1,7 @@
 """The Claude Code guard hooks are part of the safety net: they get tests like any code."""
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -13,7 +14,9 @@ HOOKS = Path(__file__).resolve().parents[2] / ".claude" / "hooks"
 def run_hook(
     name: str, payload: dict[str, object], project: Path | None = None
 ) -> subprocess.CompletedProcess[str]:
-    env = {"PATH": "/usr/bin:/bin"}
+    # Minimal environment, but with the real PATH: guard-files needs git, which on Windows
+    # does not live in /usr/bin.
+    env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin")}
     if project is not None:
         env["CLAUDE_PROJECT_DIR"] = str(project)
     return subprocess.run(  # noqa: S603
@@ -100,3 +103,21 @@ def test_guard_files_blocks_committed_migration(tmp_path: Path) -> None:
     new_migration = versions / "0002_ref.py"
     result = run_hook("guard-files.py", {"tool_input": {"file_path": str(new_migration)}}, tmp_path)
     assert result.returncode == 0
+
+
+def test_guard_files_fails_closed_without_git(tmp_path: Path) -> None:
+    versions = tmp_path / "migrations" / "versions"
+    versions.mkdir(parents=True)
+    migration = versions / "0001_ops.py"
+    migration.write_text("revision = '0001'\n")
+
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, str(HOOKS / "guard-files.py")],
+        input=json.dumps({"tool_input": {"file_path": str(migration)}}),
+        capture_output=True,
+        text=True,
+        env={"PATH": str(tmp_path / "no-git-here"), "CLAUDE_PROJECT_DIR": str(tmp_path)},
+        check=False,
+    )
+    assert result.returncode == 2
+    assert "git non disponibile" in result.stderr
