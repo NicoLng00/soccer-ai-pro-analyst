@@ -1,13 +1,19 @@
-"""Configuration from environment variables only: no .env parsing, no defaults for secrets.
+"""Configuration from the environment, no defaults for secrets.
 
-Each concern has its own settings class, so a process asks only for what it uses: Alembic
-needs SAP_DB_URL_OWNER and nothing else. A missing or malformed variable raises ConfigError
-naming the variable; secrets are SecretStr and never appear in repr or str.
+Each concern has its own settings class (app, database, raw store), so a process loads only
+the section it uses: Alembic needs SAP_DB_URL_OWNER and nothing else. In development, and
+only when SAP_ENV=dev is already in the process environment, each section also reads its own
+keys from `.env` in the working directory; real environment variables win over the file. The
+Claude Code session never has the secrets in its environment (scripts/claude.sh): processes
+read them from the file when they need them. A missing or malformed variable raises
+ConfigError naming the variable; secrets are SecretStr and never appear in repr or str.
 """
 
 from __future__ import annotations
 
+import os
 from enum import StrEnum
+from pathlib import Path
 from typing import Literal
 
 from pydantic import SecretStr, ValidationError
@@ -26,10 +32,18 @@ SQLALCHEMY_DRIVER = "postgresql+psycopg"
 FORBIDDEN_QUERY_KEYS = frozenset({"user", "password", "passfile", "service", "servicefile", "options"})
 
 
+DOTENV = Path(".env")
+
+
 class Environment(StrEnum):
     DEV = "dev"
     CI = "ci"
     PROD = "prod"
+
+
+def dotenv_file() -> Path | None:
+    """`.env` only in development. SAP_ENV itself comes from the environment, never from the file."""
+    return DOTENV if os.environ.get("SAP_ENV") == Environment.DEV.value else None
 
 
 class AppSettings(BaseSettings):
@@ -137,12 +151,12 @@ def load_app_settings() -> AppSettings:
 
 
 def load_database_settings() -> DatabaseSettings:
-    return DatabaseSettings()
+    return DatabaseSettings(_env_file=dotenv_file())
 
 
 def load_raw_store_settings() -> RawStoreSettings:
     try:
-        return RawStoreSettings()
+        return RawStoreSettings(_env_file=dotenv_file())
     except ValidationError as exc:
         missing = _missing_variables(exc, "SAP_RAW_")
     msg = f"variabili mancanti o non valide: {missing}"

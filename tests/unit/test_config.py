@@ -1,5 +1,6 @@
 import os
 import traceback
+from pathlib import Path
 
 import pytest
 from pydantic import SecretStr
@@ -19,10 +20,72 @@ ENCODED = "s3gr3t%40%2F%3A%25x"
 
 
 @pytest.fixture(autouse=True)
-def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def clean_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     for name in list(os.environ):
         if name.upper().startswith("SAP_"):
             monkeypatch.delenv(name)
+    # Every test runs in an empty folder: the real .env of the repository is never read.
+    monkeypatch.chdir(tmp_path)
+
+
+def write_dotenv(folder: Path, **values: str) -> None:
+    lines = [f"{key}={value}" for key, value in values.items()]
+    (folder / ".env").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def test_dotenv_is_read_in_development(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    write_dotenv(tmp_path, SAP_DB_URL_LIVE="postgresql://sap_live:from-file@localhost/sap")
+    monkeypatch.setenv("SAP_ENV", "dev")
+    assert load_database_settings().sqlalchemy_url("live").password == "from-file"  # noqa: S105 - fake value
+
+
+@pytest.mark.parametrize("env", [None, "ci", "prod"])
+def test_dotenv_is_ignored_outside_development(
+    env: str | None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    write_dotenv(tmp_path, SAP_DB_URL_LIVE="postgresql://sap_live:from-file@localhost/sap")
+    if env is not None:
+        monkeypatch.setenv("SAP_ENV", env)
+    with pytest.raises(ConfigError, match="SAP_DB_URL_LIVE"):
+        load_database_settings().libpq_url("live")
+
+
+def test_dotenv_never_sets_the_environment(tmp_path: Path) -> None:
+    # SAP_ENV decides whether the file is read, so it must come from the process environment.
+    write_dotenv(tmp_path, SAP_ENV="dev")
+    with pytest.raises(ConfigError, match="SAP_ENV"):
+        load_app_settings()
+
+
+def test_environment_variables_win_over_dotenv(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    write_dotenv(tmp_path, SAP_RAW_BUCKET="from-file", SAP_RAW_ENDPOINT_URL="http://file:8333")
+    monkeypatch.setenv("SAP_ENV", "dev")
+    monkeypatch.setenv("SAP_RAW_BUCKET", "from-env")
+    monkeypatch.setenv("SAP_RAW_ACCESS_KEY_ID", "k")
+    monkeypatch.setenv("SAP_RAW_SECRET_ACCESS_KEY", "s")
+    raw = load_raw_store_settings()
+    assert (raw.bucket, raw.endpoint_url) == ("from-env", "http://file:8333")
+
+
+def test_each_section_loads_only_its_own_keys(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    write_dotenv(
+        tmp_path,
+        SAP_DB_URL_OWNER="postgresql://sap_owner:owner-pw@localhost/sap",
+        SAP_RAW_ENDPOINT_URL="http://127.0.0.1:8333",
+        SAP_RAW_BUCKET="sap-raw",
+        SAP_RAW_ACCESS_KEY_ID="k",
+        SAP_RAW_SECRET_ACCESS_KEY="s",  # noqa: S106 - fake value
+    )
+    monkeypatch.setenv("SAP_ENV", "dev")
+    raw = load_raw_store_settings()
+    assert "owner-pw" not in str(raw.model_dump())
+    assert set(type(raw).model_fields) == {
+        "endpoint_url",
+        "region",
+        "bucket",
+        "access_key_id",
+        "secret_access_key",
+    }
 
 
 def test_environment_is_required() -> None:
