@@ -27,11 +27,13 @@ Dettagli in `docs/architecture.md`. Se un compito sembra richiedere di violarne 
 | `src/soccer_analyst/models/`, `evaluation/` | Modelli e valutazione |
 | `src/soccer_analyst/agents/` | Agenti LLM runtime e provider |
 | `src/soccer_analyst/orchestration/` | Definizioni Dagster (involucri sottili, niente logica di dominio) |
-| `src/soccer_analyst/cli.py` | CLI `sap` |
+| `src/soccer_analyst/api/` | API FastAPI dell'area amministrativa (fase 6) |
+| `src/soccer_analyst/cli.py` | CLI `sap`, compresa la gestione delle utenze (`sap admin`) |
+| `frontend/` | Pagina d'ingresso e area `/app`: Vite, React 19, TypeScript, Tailwind v4 (fase 6) |
 | `migrations/` | Alembic |
 | `registry/` | `sources.yaml`, `variables.yaml`: fonte di verità di fonti e variabili |
 | `curation/` | Dati curati a mano (tavolino, penalizzazioni, stadi, rivalità) |
-| `docs/` | Architettura, modello dei dati, fonti, qualità, agenti, roadmap, ADR, prompt di fase |
+| `docs/` | Architettura, modello dei dati, fonti, qualità, sicurezza, frontend, agenti, roadmap, ADR, prompt di fase |
 | `reports/` | Report generati (qualità, valutazione, giornate) |
 
 ## Comandi
@@ -52,8 +54,8 @@ uv run dagster dev -m soccer_analyst.orchestration.definitions
 
 - **Fasi.** La fase corrente è in `docs/roadmap.md`. Ogni fase parte con `/avvia-fase N` e un piano in plan mode approvato da Nico.
 - **Documentazione prima del codice.** Se cambia lo schema, aggiorna prima `docs/data-model.md`; se cambia una fonte, `docs/sources.md`; una decisione importante diventa un ADR in `docs/decisions/`.
-- **Revisori.** Usa i subagent di `.claude/agents/`: `schema-guardian` dopo modifiche a migrazioni o `db/`; `leakage-auditor` dopo modifiche a feature, modelli, regole di conoscibilità, adapter; `ml-evaluator` prima di attivare una variabile o un modello; `data-quality-analyst` dopo un backfill.
-- **Procedure.** Skill `nuova-fonte`, `nuova-variabile`, `nuova-migrazione`, `backfill-stagione`, `verifica-pit`.
+- **Revisori.** Usa i subagent di `.claude/agents/`: `schema-guardian` dopo modifiche a migrazioni o `db/`; `leakage-auditor` dopo modifiche a feature, modelli, regole di conoscibilità, adapter; `ml-evaluator` prima di attivare una variabile o un modello; `data-quality-analyst` dopo un backfill; `security-reviewer` dopo modifiche ad API, frontend, autenticazione, CI o deploy.
+- **Procedure.** Skill `nuova-fonte`, `nuova-variabile`, `nuova-migrazione`, `nuovo-endpoint`, `backfill-stagione`, `verifica-pit`, `pentest` (solo su richiesta di Nico).
 - **Branch e commit.** Un branch per blocco di lavoro; commit piccoli con messaggi in italiano all'imperativo ("Aggiungi adapter football_data"). Mai commit su `main` direttamente.
 
 ## Convenzioni di codice
@@ -74,6 +76,9 @@ uv run dagster dev -m soccer_analyst.orchestration.definitions
 - Usare statistiche di football-data non normalizzate per stagione (ADR 0005), o Pinnacle dopo il 23/07/2025 come riferimento.
 - Inserire dati di terze parti nel repository (fixture minime per i test escluse).
 - Dichiarare finito un blocco senza aver eseguito i comandi di verifica.
+- Scrivere credenziali reali in codice, test, log, report o chat: le utenze si creano da terminale con `sap admin create`.
+- Aggiungere un endpoint senza `require_admin` e senza test di autorizzazione, o mostrare nel frontend testo esterno come HTML.
+- Lanciare strumenti di scansione o attacco (nmap, ffuf, nuclei, sqlmap, ZAP) contro qualcosa che non sia l'ambiente locale o lo staging del perimetro.
 
 ## Documenti da leggere quando servono
 
@@ -82,4 +87,6 @@ uv run dagster dev -m soccer_analyst.orchestration.definitions
 - `docs/sources.md` e `docs/data-quality.md`: fonti, difetti noti, controlli
 - `docs/variables.md` e `registry/variables.yaml`: registro delle variabili
 - `docs/agents.md`: subagent, skill, hook, agenti runtime
+- `docs/security.md`: difese, utenze, test di sicurezza, pentest
+- `docs/frontend/`: riferimento di design, adattamenti, pagine dell'area amministrativa
 - `docs/roadmap.md` e `docs/prompts/`: fasi e criteri di completamento

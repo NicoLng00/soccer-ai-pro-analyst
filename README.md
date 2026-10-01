@@ -37,8 +37,8 @@ Poi, nella sessione: `/avvia-fase 0`.
 |---|---|---|
 | Istruzioni di progetto | `CLAUDE.md` | Principi, comandi, convenzioni, cosa non fare mai |
 | Fasi | `docs/roadmap.md`, `docs/prompts/fase-N.md` | Un prompt per fase con blocchi, vincoli e criteri di completamento |
-| Subagent revisori | `.claude/agents/` | `schema-guardian`, `leakage-auditor`, `ml-evaluator` (sola lettura); `source-adapter-engineer`, `data-quality-analyst` |
-| Skill | `.claude/skills/` | Procedure ripetibili: avvio fase, nuova fonte, nuova variabile, nuova migrazione, backfill, verifica point-in-time |
+| Subagent revisori | `.claude/agents/` | `schema-guardian`, `leakage-auditor`, `ml-evaluator`, `security-reviewer` (sola lettura); `source-adapter-engineer`, `data-quality-analyst` |
+| Skill | `.claude/skills/` | Procedure ripetibili: avvio fase, nuova fonte, nuova variabile, nuova migrazione, nuovo endpoint, backfill, verifica point-in-time, pentest |
 | Hook | `.claude/hooks/`, `.claude/settings.json` | Bloccano segreti, dati, migrazioni committate, SQL distruttivo; formattano; controllano prima di chiudere il turno |
 | MCP | `.mcp.json` | Postgres in sola lettura (ruolo `sap_readonly`) per ispezionare i dati |
 | Agenti runtime | `docs/agents.md`, ADR 0006 | LLM solo ai margini: notizie, sentiment, revisione della giornata. Mai nel calcolo della previsione |
@@ -50,6 +50,8 @@ Poi, nella sessione: `/avvia-fase 0`.
 - `docs/sources.md`, `docs/data-quality.md` — fonti, difetti noti, controlli
 - `docs/variables.md`, `registry/` — registro delle variabili e delle fonti
 - `docs/agents.md` — infrastruttura agentica di sviluppo e runtime
+- `docs/security.md` — difese, utenze amministrative, test di sicurezza, pentest
+- `docs/frontend/` — riferimento di design e area amministrativa
 - `docs/decisions/` — decisioni architetturali (ADR)
 - `curation/` — fatti curati a mano da fonti ufficiali
 

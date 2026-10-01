@@ -1,4 +1,4 @@
-"""Create or update the four database roles from the SAP_DB_URL_* variables.
+"""Create or update the database roles from the SAP_DB_URL_* variables.
 
 Runs as the container superuser (SAP_DB_URL_ADMIN) in development and CI only.
 Idempotent: roles that exist get their password reset, nothing else changes.
@@ -20,6 +20,8 @@ ROLES = {
     "SAP_DB_URL_LIVE": "sap_live",
     "SAP_DB_URL_BACKFILL": "sap_backfill",
     "SAP_DB_URL_READONLY": "sap_readonly",
+    "SAP_DB_URL_API": "sap_api",
+    "SAP_DB_URL_USERADMIN": "sap_useradmin",
 }
 
 
@@ -60,12 +62,13 @@ def main() -> None:
         conn.execute(sql.SQL("ALTER DATABASE {} OWNER TO sap_owner").format(db))
         conn.execute(sql.SQL("REVOKE ALL ON DATABASE {} FROM PUBLIC").format(db))
         conn.execute(
-            sql.SQL("GRANT CONNECT, TEMPORARY ON DATABASE {} TO sap_live, sap_backfill, sap_readonly").format(
-                db
-            )
+            sql.SQL(
+                "GRANT CONNECT, TEMPORARY ON DATABASE {} "
+                "TO sap_live, sap_backfill, sap_readonly, sap_api, sap_useradmin"
+            ).format(db)
         )
         conn.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC")
-        print(f"database {dbname}: owner sap_owner, connect per live/backfill/readonly")
+        print(f"database {dbname}: owner sap_owner, connect per gli altri ruoli")
 
 
 if __name__ == "__main__":
