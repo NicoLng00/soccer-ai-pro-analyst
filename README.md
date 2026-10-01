@@ -22,12 +22,13 @@ uv run pytest -m "not integration"
 uv run pre-commit install
 ```
 
-Per lavorare con Claude Code, esporta le variabili e avvia la sessione dalla radice del repository:
+Per lavorare con Claude Code avvia la sessione con lo script, dalla radice del repository:
 
 ```bash
-set -a; source .env; set +a        # serve al server MCP in sola lettura
-claude
+./scripts/claude.sh
 ```
+
+Non esportare `.env` nella shell da cui parte Claude Code: ogni comando che Claude esegue vedrebbe tutti i segreti. Lo script passa alla sessione solo `SAP_ENV` e `SAP_DB_URL_READONLY` (per il server MCP in sola lettura). In sviluppo (`SAP_ENV=dev`) i processi Python leggono `.env` da soli tramite `core/config.py`, ciascuno solo la sezione che gli serve.
 
 Poi, nella sessione: `/avvia-fase 0`.
 

@@ -36,7 +36,7 @@ Da internet si raggiungono solo la pagina d'ingresso statica e, dietro Cloudflar
 9. **CORS.** Solo l'origine del frontend, con credenziali; nessun carattere jolly.
 10. **Richieste che cambiano stato.** `SameSite=Strict` più controllo dell'header `Origin` su ogni `POST`.
 11. **Audit.** `app.audit_log` in sola aggiunta: accessi riusciti e falliti, secondo fattore, logout, decisioni sulle proposte, gestione degli utenti. Mai password, codici TOTP, cookie o token nei log.
-12. **Segreti.** Solo variabili d'ambiente. I segreti TOTP sono cifrati nel database con una chiave che arriva dall'ambiente (`SAP_TOTP_ENCRYPTION_KEY`), con procedura di rotazione documentata.
+12. **Segreti.** Solo variabili d'ambiente. In sviluppo `.env` non si esporta nella sessione di Claude Code: `scripts/claude.sh` le passa solo `SAP_ENV` e `SAP_DB_URL_READONLY`, e i processi Python leggono `.env` da soli solo con `SAP_ENV=dev`. I segreti TOTP sono cifrati nel database con una chiave che arriva dall'ambiente (`SAP_TOTP_ENCRYPTION_KEY`), con procedura di rotazione documentata.
 13. **Agenti LLM.** Il testo delle notizie è dato, mai istruzioni: gli agenti non hanno strumenti che scrivono, e il loro output passa da un modello Pydantic e dalla valutazione (ADR 0006).
 14. **Catena di fornitura.** `uv.lock` e `package-lock.json` committati; Dependabot; audit delle dipendenze; scansione dei segreti.
 

@@ -57,6 +57,7 @@ jobs:
       SAP_DB_URL_OWNER: postgresql://sap_owner:ci-owner@localhost:5432/sap
       SAP_DB_URL_LIVE: postgresql://sap_live:ci-live@localhost:5432/sap
       SAP_DB_URL_BACKFILL: postgresql://sap_backfill:ci-backfill@localhost:5432/sap
+      SAP_DB_URL_REGISTRY: postgresql://sap_registry:ci-registry@localhost:5432/sap
       SAP_DB_URL_READONLY: postgresql://sap_readonly:ci-readonly@localhost:5432/sap
       SAP_DB_URL_API: postgresql://sap_api:ci-api@localhost:5432/sap
       SAP_DB_URL_USERADMIN: postgresql://sap_useradmin:ci-useradmin@localhost:5432/sap

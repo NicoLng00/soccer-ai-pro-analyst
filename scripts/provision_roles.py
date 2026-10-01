@@ -19,6 +19,7 @@ ROLES = {
     "SAP_DB_URL_OWNER": "sap_owner",
     "SAP_DB_URL_LIVE": "sap_live",
     "SAP_DB_URL_BACKFILL": "sap_backfill",
+    "SAP_DB_URL_REGISTRY": "sap_registry",
     "SAP_DB_URL_READONLY": "sap_readonly",
     "SAP_DB_URL_API": "sap_api",
     "SAP_DB_URL_USERADMIN": "sap_useradmin",
@@ -46,6 +47,10 @@ def main() -> None:
     passwords = {role: password_for(var, role) for var, role in ROLES.items()}
 
     with psycopg.connect(admin_url, autocommit=True) as conn:
+        # CREATE/ALTER ROLE ... PASSWORD carries the password in clear: keep it out of the server log.
+        conn.execute("SET log_statement = 'none'")
+        conn.execute("SET log_min_duration_statement = -1")
+        conn.execute("SET log_min_error_statement = 'panic'")
         dbname = conn.info.dbname
         for role, password in passwords.items():
             exists = conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (role,)).fetchone()
@@ -64,7 +69,7 @@ def main() -> None:
         conn.execute(
             sql.SQL(
                 "GRANT CONNECT, TEMPORARY ON DATABASE {} "
-                "TO sap_live, sap_backfill, sap_readonly, sap_api, sap_useradmin"
+                "TO sap_live, sap_backfill, sap_registry, sap_readonly, sap_api, sap_useradmin"
             ).format(db)
         )
         conn.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC")
