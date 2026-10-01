@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 if [[ ! -f .env ]]; then
-  echo "Manca .env: esegui 'cp env.example .env' e cambia le password." >&2
+  echo "Manca .env: esegui 'uv run python scripts/init_env.py'." >&2
   exit 1
 fi
 # .env si legge come testo, non si esegue (BOM, CRLF e ultima riga senza a capo gestiti).

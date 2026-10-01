@@ -14,7 +14,7 @@ cd "$(dirname "$0")/.."
 env_file="${SAP_ENV_FILE:-.env}"
 claude_bin="${SAP_CLAUDE_BIN:-claude}"
 if [[ ! -f "$env_file" ]]; then
-  echo "Manca $env_file: esegui 'cp env.example .env' e cambia le password." >&2
+  echo "Manca $env_file: esegui 'uv run python scripts/init_env.py'." >&2
   exit 1
 fi
 
