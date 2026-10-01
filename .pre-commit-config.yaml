@@ -15,13 +15,19 @@ repos:
         args: ["--maxkb=300"]
         exclude: '^uv\.lock$'
 
+  # Segreti nel codice: blocca il commit. In CI gitleaks rilegge tutta la storia.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
   - repo: local
     hooks:
       - id: no-env-files
         name: blocca file .env
-        entry: "I file .env non vanno nel repository (solo .env.example)."
+        entry: "I file .env non vanno nel repository: il modello è env.example."
         language: fail
-        files: '(^|/)\.env($|\.(?!example$))'
+        files: '(^|/)\.env($|\.)'
 
       - id: no-data-files
         name: blocca dati nel repository
