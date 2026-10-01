@@ -2,31 +2,33 @@
 
 from __future__ import annotations
 
-import os
 import sys
 import time
 
 import boto3
 from botocore.exceptions import ClientError, EndpointConnectionError
 
+from soccer_analyst.core.config import load_raw_store_settings
+from soccer_analyst.core.errors import ConfigError
 
-def env(name: str) -> str:
-    value = os.environ.get(name, "")
-    if not value:
-        sys.exit(f"Variabile mancante: {name}")
-    return value
+ATTEMPTS = 30
 
 
 def main() -> None:
+    try:
+        settings = load_raw_store_settings()
+    except ConfigError as exc:
+        sys.exit(str(exc))
     client = boto3.client(
         "s3",
-        endpoint_url=env("SAP_RAW_ENDPOINT_URL"),
-        region_name=os.environ.get("SAP_RAW_REGION", "auto"),
-        aws_access_key_id=env("SAP_RAW_ACCESS_KEY_ID"),
-        aws_secret_access_key=env("SAP_RAW_SECRET_ACCESS_KEY"),
+        endpoint_url=settings.endpoint_url,
+        region_name=settings.region,
+        aws_access_key_id=settings.access_key_id.get_secret_value(),
+        aws_secret_access_key=settings.secret_access_key.get_secret_value(),
     )
-    bucket = env("SAP_RAW_BUCKET")
-    for attempt in range(30):
+    bucket = settings.bucket
+    # SeaweedFS has no healthcheck in docker-compose.yml: retry while it starts.
+    for attempt in range(ATTEMPTS):
         try:
             client.head_bucket(Bucket=bucket)
             print(f"bucket {bucket}: esiste")
@@ -37,10 +39,10 @@ def main() -> None:
                 client.create_bucket(Bucket=bucket)
                 print(f"bucket {bucket}: creato")
                 return
-            if attempt == 29:
+            if attempt == ATTEMPTS - 1:
                 raise
         except EndpointConnectionError:
-            if attempt == 29:
+            if attempt == ATTEMPTS - 1:
                 raise
         time.sleep(2)
 

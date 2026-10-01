@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from dotenv_cases import CASES, VALUES, write_case
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts" / "claude.sh"
@@ -87,6 +88,19 @@ def test_session_gets_no_secret(tmp_path: Path, fake_claude: Path) -> None:
     secrets += ["totp-key-value", "gemini-key-value", "pg-pw-value", *INHERITED.values()]
     leaked_values = [s for s in secrets if s in result.stdout]
     assert not leaked_values
+
+
+@pytest.mark.parametrize("case", CASES)
+def test_every_file_layout_gives_the_same_session(case: str, tmp_path: Path, fake_claude: Path) -> None:
+    result = launch(write_case(tmp_path, case), fake_claude)
+    assert result.returncode == 0, result.stderr
+    seen = session_env(result.stdout)
+    assert seen["SAP_ENV"] == VALUES["SAP_ENV"]
+    assert seen["SAP_DB_URL_READONLY"] == VALUES["SAP_DB_URL_READONLY"]
+    assert "SAP_DB_URL_OWNER" not in seen
+    assert "SAP_DB_URL_REGISTRY" not in seen
+    assert "pw-owner" not in result.stdout
+    assert "pw-reg" not in result.stdout
 
 
 def test_missing_env_file_stops_the_launch(tmp_path: Path, fake_claude: Path) -> None:

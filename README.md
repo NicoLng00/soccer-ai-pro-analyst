@@ -13,12 +13,12 @@ Il sistema impara dagli errori sulla calibrazione di centinaia di partite, non i
 ## Avvio
 
 ```bash
-git init && git add . && git commit -m "Importa il kit iniziale"
-cp env.example .env                # poi cambia tutte le password
+git clone https://github.com/NicoLng00/soccer-ai-pro-analyst.git && cd soccer-ai-pro-analyst
 uv sync
+uv run python scripts/init_env.py  # .env da env.example con password casuali, mai stampate
 ./scripts/dev-up.sh                # Postgres 18 + SeaweedFS (S3), ruoli, bucket
 uv run sap registry validate       # registro di fonti e variabili
-uv run pytest -m "not integration"
+uv run pytest                      # unitari e di integrazione (testcontainers, serve Docker)
 uv run pre-commit install
 ```
 
