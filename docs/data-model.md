@@ -162,7 +162,18 @@ Test obbligatori (fase 0): una riga inserita con `known_period` che inizia dopo 
 | `ml.prediction_edge` | `prediction_id`, `market_code`, `outcome`, `bookmaker_id`, `price`, `edge numeric(7,4)` | Edge = probabilità × quota − 1 |
 | `ml.evaluation` | `id`, `model_version_id`, `scope text`, `metric` (`log_loss`, `brier`, `rps`, `ece`, `clv`), `value`, `n_matches`, `computed_at` | |
 | `ml.variable_proposal` | `id`, `proposed_by` (`agent:matchday-reviewer`, `human`), `created_at`, `title`, `rationale`, `evidence jsonb` | Ipotesi di nuove variabili; nessuna si attiva da sola |
-| `ml.variable_proposal_decision` | `proposal_id`, `decision` (`accepted`, `rejected`), `decided_at`, `note` | Decisione umana |
+| `ml.variable_proposal_decision` | `proposal_id`, `decision` (`accepted`, `rejected`), `decided_by` (FK `app.admin_user`), `decided_at`, `note` | Decisione umana, presa dall'area amministrativa. `accepted` vuol dire "da valutare": l'attivazione passa comunque da `docs/variables.md` |
+
+## app
+
+Utenti, sessioni e audit dell'area amministrativa (ADR 0008, `docs/security.md`). È l'unico schema, insieme a `ops`, in cui sono ammessi null: contiene stati operativi (una sessione revocata o no), non fatti calcistici.
+
+| Tabella | Colonne | Vincoli e note |
+|---|---|---|
+| `app.admin_user` | `id smallint`, `username`, `email`, `password_hash`, `totp_secret_enc bytea`, `totp_confirmed_at`, `created_at`, `password_changed_at`, `disabled_at` (null se attivo) | `username` univoco, `CHECK (username ~ '^[a-z0-9._-]{3,32}$')`; `password_hash` argon2id; il segreto TOTP è cifrato con `SAP_TOTP_ENCRYPTION_KEY`. Scrivibile solo da `sap_useradmin` |
+| `app.session` | `id`, `user_id`, `token_hash bytea`, `created_at`, `last_seen_at`, `mfa_passed_at` (null finché il TOTP non è confermato), `idle_expires_at`, `absolute_expires_at`, `revoked_at`, `ip inet`, `user_agent` | `token_hash` univoco (SHA-256 del token: il token in chiaro vive solo nel cookie). Una sessione senza `mfa_passed_at` non dà accesso a nessun endpoint protetto |
+| `app.login_attempt` | `id`, `at`, `ip inet`, `username_tried`, `outcome` (`ok`, `bad_credentials`, `locked`, `bad_totp`) | Base per il limite di tentativi e il blocco progressivo. Pulizia oltre i 90 giorni |
+| `app.audit_log` | `id`, `at`, `actor` (`user:<id>`, `cli`, `system`), `action`, `target`, `details jsonb`, `ip inet` | Sola aggiunta: un trigger blocca `UPDATE` e `DELETE`. Mai password, codici, cookie o token in `details` |
 
 ## Ruoli Postgres
 
@@ -171,4 +182,6 @@ Test obbligatori (fase 0): una riga inserita con `known_period` che inizia dopo 
 | `sap_owner` | Proprietario dello schema; solo migrazioni |
 | `sap_live` | `INSERT` su fatti e osservazioni con `mode = 'live'`; `UPDATE` solo della colonna `known_period` |
 | `sap_backfill` | Come `sap_live` ma `mode = 'backfill'` |
-| `sap_readonly` | `SELECT` su tutto; usato dal server MCP di Claude Code e dalle analisi |
+| `sap_readonly` | `SELECT` su tutto tranne `app`; usato dal server MCP di Claude Code e dalle analisi |
+| `sap_api` | Ruolo dell'API: `SELECT` su `ref`, `obs`, `mkt`, `ml` e sulle tabelle di stato di `ops`; `INSERT` su `ml.variable_proposal_decision`; `SELECT`, `INSERT`, `UPDATE` su `app.session` e `app.login_attempt`; `INSERT` su `app.audit_log`; `SELECT` su `app.admin_user` senza poterlo modificare |
+| `sap_useradmin` | Solo per i comandi `sap admin` da terminale: `SELECT`, `INSERT`, `UPDATE` su `app.admin_user`, `UPDATE` di `revoked_at` su `app.session`, `INSERT` su `app.audit_log`. Il container dell'API non ne conosce la password |

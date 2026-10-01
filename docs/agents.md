@@ -21,6 +21,8 @@ Due livelli con regole diverse. Nello sviluppo gli agenti scrivono codice sotto 
 | `source-adapter-engineer` | sonnet | Per costruire o riparare un adapter | Segue la skill `nuova-fonte`: contratto, parser, mapping, test con fixture reali, controlli di qualità |
 | `data-quality-analyst` | sonnet | Dopo un backfill o quando un controllo fallisce | Interroga il database in sola lettura via MCP, indaga le anomalie, scrive un report in `reports/quality/` |
 | `ml-evaluator` | opus | Prima di attivare una variabile o un modello | Verifica validazione temporale, confronto con la quota di chiusura, significatività; boccia i miglioramenti dentro il rumore |
+| `security-reviewer` | opus | Dopo modifiche ad API, frontend, `sap admin`, header, CORS, CI o deploy, e prima di ogni deploy | Cerca falle di autenticazione, autorizzazione, input, sessioni, segreti e configurazione secondo `docs/security.md` (ASVS 5.0 livello 2, API Top 10). Solo lettura |
+| `security-reviewer` | opus | Dopo modifiche ad API, frontend, `sap admin`, header, CORS, CI o deploy, e prima di ogni deploy | Cerca falle di autenticazione, autorizzazione, input, sessioni, segreti e configurazione secondo `docs/security.md` (ASVS 5.0 livello 2, API Top 10). Solo lettura |
 
 ### Skill (`.claude/skills/`)
 
@@ -32,6 +34,10 @@ Due livelli con regole diverse. Nello sviluppo gli agenti scrivono codice sotto 
 | `nuova-migrazione` | automatica | Regole per le migrazioni Alembic |
 | `backfill-stagione` | solo `/backfill-stagione competizione stagione` | Backfill di una partizione con controlli e report |
 | `verifica-pit` | automatica | Checklist point-in-time, caricata anche dal `leakage-auditor` |
+| `nuovo-endpoint` | automatica o `/nuovo-endpoint GET /api/...` | Endpoint con autorizzazione, limiti, test 401 e 422, fuzzing, revisione di sicurezza |
+| `pentest` | solo `/pentest prepara`, `testa`, `report`, `ritest` | Campagna di pentest sullo staging condotta da Nico, report fuori dal repository |
+| `nuovo-endpoint` | automatica o `/nuovo-endpoint GET /api/...` | Endpoint con autorizzazione, limiti, test 401 e 422, fuzzing, revisione di sicurezza |
+| `pentest` | solo `/pentest prepara|testa|report|ritest` | Campagna di pentest sullo staging condotta da Nico, report fuori dal repository |
 
 ### Hook (`.claude/settings.json`)
 
@@ -42,6 +48,10 @@ Due livelli con regole diverse. Nello sviluppo gli agenti scrivono codice sotto 
 | `PreToolUse` su `Bash` | `guard-bash.py` | Blocca `DROP`, `TRUNCATE`, `DELETE` su schemi di fatti, `git push --force`, `rm -rf` fuori da `tmp/` |
 | `PostToolUse` su `Edit`/`Write` | `format-python.py` | `ruff format` e `ruff check --fix` sul file; gli errori residui tornano a Claude |
 | `Stop` | `quick-check.py` | Lint, type check e test unitari veloci; se falliscono Claude continua a correggere |
+
+Oltre agli hook, i permessi di `.claude/settings.json` chiedono conferma a Nico prima di ogni strumento di scansione o attacco (nmap, ffuf, nuclei, sqlmap, ZAP, testssl.sh) e prima di installare pacchetti npm.
+
+Oltre agli hook, i permessi di `.claude/settings.json` chiedono conferma a Nico prima di ogni strumento di scansione o attacco (nmap, ffuf, nuclei, sqlmap, ZAP, testssl.sh) e prima di installare pacchetti npm.
 
 ### MCP (`.mcp.json`)
 

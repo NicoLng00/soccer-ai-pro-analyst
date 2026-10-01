@@ -57,7 +57,10 @@ Dettaglio a livello di colonna: `docs/data-model.md`.
 | Modelli | SciPy (Dixon-Coles), LightGBM, scikit-learn per la calibrazione | Fase 4 e 5 |
 | Tracciamento esperimenti | MLflow con backend Postgres | Fase 4 e 5 |
 | Agenti LLM runtime | Pydantic AI, provider Gemini Flash-Lite sul piano gratuito | Solo ai margini: notizie e report. Vedi `docs/agents.md` |
-| CLI | Typer | `sap ...` per operazioni manuali |
+| CLI | Typer | `sap ...` per operazioni manuali, compresa la gestione delle utenze (`sap admin`) |
+| API | FastAPI | Area amministrativa, quasi solo lettura (fase 6, ADR 0008) |
+| Frontend | Vite, React 19, TypeScript, Tailwind v4, framer-motion | Pagina d'ingresso e area `/app` (`docs/frontend/`) |
+| Accesso da internet | Cloudflare Tunnel e Cloudflare Access | Nessuna porta aperta sulla VM; solo le email dei due admin raggiungono `/app` e l'API |
 | Log | structlog in JSON | Un evento per riga, con `job_run_id` |
 
 ## Orchestrazione
@@ -83,10 +86,12 @@ Due livelli, descritti in `docs/agents.md`:
 
 - **Sviluppo**: Postgres in Docker Compose, R2 simulato con SeaweedFS (S3 compatibile; MinIO community non è più mantenuto), `.env` locale.
 - **Produzione**: VM Arm su Oracle Cloud Always Free (2 OCPU, 12 GB). Docker Compose con Postgres, Dagster webserver e daemon, codice dell'applicazione. Backup notturno di Postgres su R2. Installazione riproducibile da `scripts/provision-vm.sh`.
+- **Frontend**: Cloudflare Workers con static assets. L'API gira sulla VM ed è raggiungibile solo tramite Cloudflare Tunnel, con Cloudflare Access davanti.
 - **CI**: GitHub Actions per lint, type check, test, migrazioni da zero su un Postgres effimero. Un workflow orario controlla `ops.job_run` e segnala gli slot saltati.
 
 ## Sicurezza
 
 - Segreti solo in variabili d'ambiente; `.env` mai nel repository, mai letto da Claude Code (regola `deny`).
-- Tre ruoli Postgres oltre al proprietario: `sap_live`, `sap_backfill`, `sap_readonly`. Il server MCP usa `sap_readonly`.
+- Ruoli Postgres oltre al proprietario: `sap_live`, `sap_backfill`, `sap_readonly` (usato dal server MCP), `sap_api` (API), `sap_useradmin` (solo comandi `sap admin`).
+- Area amministrativa: accesso a due livelli (Cloudflare Access e autenticazione con TOTP), test di sicurezza continui per ogni endpoint, pentest prima della messa online. Dettagli in `docs/security.md`.
 - I dati di terze parti non entrano mai nel repository pubblico.
