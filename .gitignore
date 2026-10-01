@@ -1,7 +1,9 @@
 # Segreti: mai nel repository
+# Il modello delle variabili è env.example (senza punto iniziale). Sono segreti, ovunque:
+# .env, .env.* e .envrc (stessa definizione di pre-commit, CI e hook di Claude Code).
 .env
 .env.*
-!.env.example
+.envrc
 secrets/
 
 # Dati di terze parti e dati generati: mai nel repository

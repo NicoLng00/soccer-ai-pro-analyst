@@ -1,0 +1,10 @@
+# Line ending LF ovunque, anche su Windows: gli script bash non partono con CRLF.
+* text=auto eol=lf
+
+# Binari: nessuna conversione.
+*.gz binary
+*.zip binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.dump binary

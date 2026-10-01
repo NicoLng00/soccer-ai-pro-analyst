@@ -15,13 +15,20 @@ repos:
         args: ["--maxkb=300"]
         exclude: '^uv\.lock$'
 
+  # Segreti nel codice. L'hook ufficiale esegue `gitleaks git --pre-commit --staged`:
+  # guarda solo le modifiche in staging. La scansione di tutta la storia è in CI.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
   - repo: local
     hooks:
       - id: no-env-files
         name: blocca file .env
-        entry: "I file .env non vanno nel repository (solo .env.example)."
+        entry: "I file .env, .env.* e .envrc non vanno nel repository: il modello è env.example."
         language: fail
-        files: '(^|/)\.env($|\.(?!example$))'
+        files: '(^|/)\.env($|\.|rc$)'
 
       - id: no-data-files
         name: blocca dati nel repository
