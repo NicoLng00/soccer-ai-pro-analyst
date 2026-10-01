@@ -41,16 +41,40 @@
       "Bash(testssl.sh *)",
       "Bash(docker run * zaproxy/*)",
       "Bash(zap-baseline.py *)",
-      "Bash(zap-api-scan.py *)"
+      "Bash(zap-api-scan.py *)",
+      "PowerShell(git commit *)",
+      "PowerShell(git push *)",
+      "PowerShell(docker compose down *)",
+      "PowerShell(uv add *)",
+      "PowerShell(uv remove *)",
+      "PowerShell(npm install *)",
+      "PowerShell(npm --prefix frontend install *)",
+      "PowerShell(nmap *)",
+      "PowerShell(ffuf *)",
+      "PowerShell(nuclei *)",
+      "PowerShell(sqlmap *)",
+      "PowerShell(nikto *)",
+      "PowerShell(testssl.sh *)",
+      "PowerShell(docker run * zaproxy/*)",
+      "PowerShell(zap-baseline.py *)",
+      "PowerShell(zap-api-scan.py *)",
+      "Edit(./.claude/**)",
+      "Write(./.claude/**)",
+      "Edit(./.github/workflows/**)",
+      "Write(./.github/workflows/**)"
     ],
     "deny": [
-      "Read(./.env)",
-      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/.envrc)",
       "Read(./secrets/**)",
-      "Edit(./.env)",
-      "Edit(./.env.*)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Edit(**/.envrc)",
       "Bash(git push --force *)",
-      "Bash(git push -f *)"
+      "Bash(git push -f *)",
+      "PowerShell(git push --force *)",
+      "PowerShell(git push -f *)"
     ]
   },
   "hooks": {
@@ -59,6 +83,7 @@
         "hooks": [
           {
             "type": "command",
+            "shell": "bash",
             "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.py\""
           }
         ]
@@ -70,6 +95,7 @@
         "hooks": [
           {
             "type": "command",
+            "shell": "bash",
             "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-files.py\" || exit 2"
           }
         ]
@@ -79,6 +105,7 @@
         "hooks": [
           {
             "type": "command",
+            "shell": "bash",
             "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.py\" || exit 2"
           }
         ]
@@ -90,6 +117,7 @@
         "hooks": [
           {
             "type": "command",
+            "shell": "bash",
             "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-python.py\""
           }
         ]
@@ -100,6 +128,7 @@
         "hooks": [
           {
             "type": "command",
+            "shell": "bash",
             "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/quick-check.py\"",
             "timeout": 300
           }
