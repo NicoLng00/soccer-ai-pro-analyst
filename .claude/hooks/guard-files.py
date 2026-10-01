@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """PreToolUse (Edit|Write|MultiEdit|NotebookEdit): protect secrets, data and committed migrations.
 
-Exit 2 blocks the tool call; stderr is shown to Claude as the reason.
+Exit 2 blocks the tool call; stderr is shown to Claude as the reason. Any internal error also
+exits 2 (fail closed).
 """
 
 from __future__ import annotations
@@ -34,7 +35,8 @@ def main() -> None:
         sys.exit(0)
     rel_posix = rel.as_posix()
 
-    if rel.name.startswith(".env") and rel.name != ".env.example":
+    # The template is env.example (no leading dot): every .env* file is a secrets file.
+    if rel.name.startswith(".env"):
         block("File di segreti: non si modifica da Claude Code. Chiedi a Nico.")
 
     if rel_posix.startswith(("data/", "secrets/")):
@@ -60,4 +62,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        # Fail closed: a guard that crashes must block, not let the edit through.
+        print(f"guard-files: errore interno, modifica bloccata: {exc!r}", file=sys.stderr)
+        sys.exit(2)

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""PreToolUse (Bash): block destructive commands on data, history, secrets and filesystem.
+"""PreToolUse (Bash|PowerShell): block destructive commands on data, history, secrets and filesystem.
 
-Exit 2 blocks the command; stderr is shown to Claude as the reason.
+Exit 2 blocks the command; stderr is shown to Claude as the reason. Any internal error also
+exits 2 (fail closed).
 Covered by tests/unit/test_claude_hooks.py: add a test case with every new rule.
 """
 
@@ -41,8 +42,9 @@ RULES: list[tuple[re.Pattern[str], str]] = [
     ),
     (
         re.compile(
-            r"(?:\b(?:cat|less|more|head|tail|grep|sed|awk|source|cp|base64|xxd|strings)|(?:^|[;&|]\s*)\.)"
-            r"\s+[^|;]*\.env(?!\.example)\b",
+            r"(?:\b(?:cat|less|more|head|tail|grep|sed|awk|source|cp|base64|xxd|strings"
+            r"|get-content|gc|type|select-string|copy-item)|(?:^|[;&|]\s*)\.)"
+            r"\s+[^|;]*\.env\b",
             re.I,
         ),
         "Lettura di file .env non ammessa.",
@@ -62,6 +64,8 @@ RM_ALLOWED = {
     ".coverage",
 }
 SEGMENT_SPLIT = re.compile(r"&&|\|\||[;|\n]")
+# PowerShell names for Remove-Item; there the recursive flag is -Recurse (or -r).
+PS_REMOVE = {"remove-item", "ri"}
 
 
 def _rm_target_allowed(target: str) -> bool:
@@ -73,7 +77,7 @@ def _rm_target_allowed(target: str) -> bool:
 
 
 def recursive_rm_violation(command: str) -> bool:
-    """True if a segment runs a recursive rm on anything outside RM_ALLOWED."""
+    """True if a segment runs a recursive rm (or PowerShell Remove-Item) outside RM_ALLOWED."""
     for segment in SEGMENT_SPLIT.split(command):
         try:
             argv = shlex.split(segment)
@@ -81,13 +85,19 @@ def recursive_rm_violation(command: str) -> bool:
             argv = segment.split()
         while argv and argv[0] in {"sudo", "command", "env"}:
             argv = argv[1:]
-        if not argv or argv[0].rsplit("/", 1)[-1] != "rm":
+        if not argv:
             continue
+        name = argv[0].rsplit("/", 1)[-1].lower()
         args = argv[1:]
         flags = [a for a in args if a.startswith("-")]
-        recursive = any(
-            f in {"--recursive", "-R"} or (not f.startswith("--") and "r" in f.lower()) for f in flags
-        )
+        if name == "rm":
+            recursive = any(
+                f in {"--recursive", "-R"} or (not f.startswith("--") and "r" in f.lower()) for f in flags
+            )
+        elif name in PS_REMOVE:
+            recursive = any(f.lower().startswith("-r") for f in flags)
+        else:
+            continue
         if not recursive:
             continue
         targets = [a for a in args if not a.startswith("-")]
@@ -110,4 +120,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        # Fail closed: a guard that crashes must block, not let the command through.
+        print(f"guard-bash: errore interno, comando bloccato: {exc!r}", file=sys.stderr)
+        sys.exit(2)
