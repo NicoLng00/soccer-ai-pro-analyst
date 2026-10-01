@@ -1,0 +1,103 @@
+# Registro delle fonti. Caricato in ops.source da `sap registry sync`.
+# priority: con più fonti per la stessa variabile vince il numero più basso.
+# Stato e problemi noti: docs/sources.md
+
+sources:
+  - code: football_data
+    name: football-data.co.uk
+    kind: file
+    status: active
+    priority: 10
+    terms_url: https://www.football-data.co.uk/
+    license_note: Download gratuito; nessuna licenza esplicita per la ridistribuzione
+  - code: understat
+    name: Understat
+    kind: scrape
+    status: active
+    priority: 10
+    terms_url: https://understat.com/
+    license_note: Termini d'uso da verificare prima di qualsiasi uso commerciale
+  - code: transfermarkt_ds
+    name: transfermarkt-datasets (dcaribou)
+    kind: file
+    status: active
+    priority: 20
+    terms_url: https://github.com/dcaribou/transfermarkt-datasets
+    license_note: Dataset CC0, dati derivati da scraping di Transfermarkt; fermo al 6 luglio 2026
+  - code: open_meteo
+    name: Open-Meteo
+    kind: api
+    status: active
+    priority: 10
+    terms_url: https://open-meteo.com/en/terms
+    license_note: Dati CC BY 4.0 con attribuzione; API gratuita solo per uso non commerciale
+  - code: wikidata
+    name: Wikidata
+    kind: api
+    status: active
+    priority: 30
+    terms_url: https://www.wikidata.org/wiki/Wikidata:Licensing
+    license_note: CC0
+  - code: api_football
+    name: API-Football
+    kind: api
+    status: testing
+    priority: 10
+    terms_url: https://www.api-football.com/terms
+    license_note: Piano gratuito 100 richieste al giorno; stagioni limitate da verificare
+  - code: the_odds_api
+    name: The Odds API
+    kind: api
+    status: testing
+    priority: 10
+    terms_url: https://the-odds-api.com/terms-and-conditions.html
+    license_note: Piano gratuito 500 crediti al mese
+  - code: oddspapi
+    name: OddsPapi
+    kind: api
+    status: testing
+    priority: 20
+    terms_url: https://oddspapi.io/
+    license_note: Copertura Goal/NoGoal gratuita dichiarata dal fornitore, da testare
+  - code: football_data_org
+    name: football-data.org
+    kind: api
+    status: testing
+    priority: 30
+    terms_url: https://www.football-data.org/
+    license_note: Solo controllo incrociato del calendario
+  - code: openfootball
+    name: openfootball
+    kind: file
+    status: active
+    priority: 40
+    terms_url: https://github.com/openfootball/football.json
+    license_note: Pubblico dominio; usata solo come seconda fonte di controllo dei risultati
+  - code: news_rss
+    name: Feed RSS delle testate sportive
+    kind: rss
+    status: testing
+    priority: 50
+    terms_url: n/d
+    license_note: Si conservano titolo, link e orario; mai il testo integrale
+  - code: curation
+    name: Curatela manuale (curation/*.yaml)
+    kind: manual
+    status: active
+    priority: 1
+    terms_url: n/d
+    license_note: Dati inseriti a mano e versionati nel repository
+  - code: derived
+    name: Derivazioni interne
+    kind: derived
+    status: active
+    priority: 1
+    terms_url: n/d
+    license_note: Calcolate dal nostro codice
+  - code: agent_news
+    name: Agente estrattore di notizie
+    kind: agent
+    status: testing
+    priority: 60
+    terms_url: n/d
+    license_note: Output di LLM validato; mai attivo senza valutazione su golden set

@@ -1,0 +1,86 @@
+[project]
+name = "soccer-analyst-pro"
+version = "0.1.0"
+description = "Point-in-time football data platform and match prediction system"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "alembic>=1.20",
+    "boto3>=1.40",
+    "httpx>=0.28",
+    "psycopg[binary]>=3.3",
+    "pydantic>=2.13",
+    "pydantic-settings>=2.10",
+    "pyyaml>=6.0",
+    "sqlalchemy>=2.1",
+    "structlog>=25.0",
+    "tenacity>=9.1",
+    "typer>=0.16",
+]
+
+[project.optional-dependencies]
+# Aggiunte fase per fase: si attivano con `uv sync --extra <nome>`.
+orchestration = ["dagster>=1.13", "dagster-postgres>=0.29", "dagster-webserver>=1.13"]
+analysis = ["duckdb>=1.5", "polars>=1.40"]
+ml = ["lightgbm>=4.7", "mlflow>=3.16", "scikit-learn>=1.9", "scipy>=1.17"]
+agents = ["feedparser>=6.0", "pydantic-ai>=2.50"]
+
+[project.scripts]
+sap = "soccer_analyst.cli:app"
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.150",
+    "mypy>=2.0",
+    "pre-commit>=4.0",
+    "pytest>=9.0",
+    "pytest-cov>=6.0",
+    "ruff>=0.16",
+    "testcontainers[postgres]>=4.15",
+    "types-pyyaml>=6.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/soccer_analyst"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "B", "UP", "SIM", "RUF", "N",
+    "DTZ",  # datetime sempre con timezone
+    "S",    # sicurezza
+    "PT", "TID", "ERA", "PL",
+]
+ignore = ["PLR0913", "PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004"]
+".claude/hooks/**" = ["S603", "S607", "T201"]
+"scripts/**" = ["S603", "S607", "T201"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"datetime.datetime.utcnow".msg = "Usa core.time.utc_now()"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+packages = ["soccer_analyst"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: richiede Postgres in container",
+    "slow: test lenti, esclusi dal controllo rapido",
+    "pit: test point-in-time, obbligatori per ogni variabile",
+]

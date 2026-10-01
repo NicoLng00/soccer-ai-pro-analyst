@@ -1,0 +1,15 @@
+# Derby e rivalità. intensity: 1 sentita, 2 forte, 3 massima. La scala è una scelta di Nico:
+# le voci qui sotto sono una proposta di partenza e restano verified: false finché non le conferma.
+# In ref.rivalry la coppia è ordinata (team_low_id < team_high_id): l'ordine qui non conta.
+version: 1
+entries:
+  - {teams: [Inter, Milan], name: Derby della Madonnina, intensity: 3, verified: false}
+  - {teams: [Lazio, Roma], name: Derby della Capitale, intensity: 3, verified: false}
+  - {teams: [Genoa, Sampdoria], name: Derby della Lanterna, intensity: 3, verified: false}
+  - {teams: [Juventus, Torino], name: Derby della Mole, intensity: 3, verified: false}
+  - {teams: [Inter, Juventus], name: Derby d'Italia, intensity: 3, verified: false}
+  - {teams: [Napoli, Roma], name: Derby del Sole, intensity: 2, verified: false}
+  - {teams: [Juventus, Napoli], name: null, intensity: 2, verified: false}
+  - {teams: [Juventus, Fiorentina], name: null, intensity: 2, verified: false}
+  - {teams: [Atalanta, Brescia], name: null, intensity: 2, verified: false}
+  - {teams: [Chievo, Verona], name: Derby della Scala, intensity: 2, verified: false}

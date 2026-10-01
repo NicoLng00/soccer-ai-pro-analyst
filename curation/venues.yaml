@@ -1,0 +1,7 @@
+# Stadi. Si compila nella fase 1 partendo da Wikidata (coordinate, capienza) e si verifica a mano:
+# gli stadi di Serie A sono poche decine. Un cambio di capienza o di stadio è una voce nuova
+# con il suo valid_from, non una modifica della voce vecchia.
+# Campi: id, name, city, latitude, longitude, capacity, surface (natural|hybrid|artificial),
+#        valid_from, wikidata_id, evidence, verified
+version: 1
+entries: []

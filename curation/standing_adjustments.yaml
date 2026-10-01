@@ -1,0 +1,37 @@
+# Penalizzazioni in classifica. Una decisione ribaltata non si cancella: si aggiunge la nuova
+# decisione con il suo known_from e il loader chiude il known_period della precedente.
+# È il caso da manuale del modello bitemporale: la classifica "vista" a marzo 2023 non è quella vista a giugno.
+version: 1
+entries:
+  - id: serie-a-2022-23-juventus-1
+    competition: serie_a
+    season: 2022-23
+    team: Juventus
+    points: -15
+    known_from: 2023-01-20    # da verificare: decisione della Corte federale d'appello
+    superseded_by: serie-a-2022-23-juventus-2
+    note: "Caso plusvalenze. Annullata dal Collegio di garanzia del CONI e rinviata."
+    evidence: []
+    verified: false
+
+  - id: serie-a-2022-23-juventus-2
+    competition: serie_a
+    season: 2022-23
+    team: Juventus
+    points: 0
+    known_from: 2023-04-20    # da verificare: annullamento del Collegio di garanzia
+    superseded_by: serie-a-2022-23-juventus-3
+    note: "Penalizzazione annullata in attesa della nuova decisione."
+    evidence: []
+    verified: false
+
+  - id: serie-a-2022-23-juventus-3
+    competition: serie_a
+    season: 2022-23
+    team: Juventus
+    points: -10
+    known_from: 2023-05-22    # da verificare: nuova decisione della Corte federale d'appello
+    superseded_by: null
+    note: "Penalizzazione definitiva della stagione."
+    evidence: []
+    verified: false

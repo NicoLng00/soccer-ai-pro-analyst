@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "postgres-ro": {
+      "command": "uvx",
+      "args": ["postgres-mcp", "--access-mode=restricted"],
+      "env": {
+        "DATABASE_URI": "${SAP_DB_URL_READONLY}"
+      }
+    }
+  }
+}

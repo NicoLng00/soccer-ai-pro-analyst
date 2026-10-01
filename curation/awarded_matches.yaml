@@ -1,0 +1,33 @@
+# Partite con risultato omologato (a tavolino) diverso da quello del campo.
+# In ref.match_result entrano entrambi: full_time_on_field (il campo) e official (l'omologato),
+# con decided_by = sporting_judge o appeal. Le feature di forma usano il campo; la classifica usa l'ufficiale.
+# Vedi README.md per le regole su evidence, verified e known_from.
+version: 1
+entries:
+  - id: serie-a-2016-17-sassuolo-pescara
+    competition: serie_a
+    season: 2016-17
+    date: 2016-08-28          # da verificare
+    home: Sassuolo
+    away: Pescara
+    on_field: [2, 1]
+    official: [0, 3]
+    decided_by: sporting_judge
+    known_from: null          # data del comunicato del Giudice sportivo, da trovare
+    note: "football-data riporta il risultato omologato; openfootball il campo."
+    evidence: []
+    verified: false
+
+  - id: serie-a-2020-21-verona-roma
+    competition: serie_a
+    season: 2020-21
+    date: 2020-09-19          # da verificare
+    home: Verona
+    away: Roma
+    on_field: [0, 0]
+    official: [3, 0]
+    decided_by: sporting_judge
+    known_from: null
+    note: "Irregolarità nella lista della Roma. football-data riporta il risultato del campo."
+    evidence: []
+    verified: false

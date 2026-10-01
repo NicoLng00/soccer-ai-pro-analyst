@@ -1,0 +1,44 @@
+# Ambiente di sviluppo: PostgreSQL 18 e un object store S3 compatibile.
+# Avvio: ./scripts/dev-up.sh (legge .env, crea ruoli e bucket).
+# Le porte sono esposte solo su 127.0.0.1.
+
+name: soccer-analyst-pro
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?imposta POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: sap
+      TZ: UTC
+      PGTZ: UTC
+    command: ["postgres", "-c", "timezone=UTC", "-c", "log_min_duration_statement=500"]
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # Da Postgres 18 l'immagine usa /var/lib/postgresql/18/docker: si monta la cartella padre.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sap"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # SeaweedFS al posto di MinIO: la community edition di MinIO non pubblica più
+  # immagini da ottobre 2025 e il repository è archiviato da febbraio 2026.
+  # In produzione il raw store è Cloudflare R2: il codice parla solo S3.
+  s3:
+    image: chrislusf/seaweedfs:latest
+    command: ["server", "-dir=/data", "-s3"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${SAP_RAW_ACCESS_KEY_ID:?imposta SAP_RAW_ACCESS_KEY_ID in .env}
+      AWS_SECRET_ACCESS_KEY: ${SAP_RAW_SECRET_ACCESS_KEY:?imposta SAP_RAW_SECRET_ACCESS_KEY in .env}
+    ports:
+      - "127.0.0.1:8333:8333"
+    volumes:
+      - s3data:/data
+
+volumes:
+  pgdata:
+  s3data:

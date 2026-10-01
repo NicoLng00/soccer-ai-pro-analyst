@@ -1,0 +1,22 @@
+# Limiti al pubblico per periodo. Il periodo 2020–2022 cambia il vantaggio del campo
+# (docs/data-quality.md): senza questo file il modello confonde "casa" con "stadio pieno".
+# capacity_share: quota di capienza ammessa (0 = porte chiuse). max_spectators se c'era un tetto assoluto.
+version: 1
+entries:
+  - id: it-2020-porte-chiuse
+    country: IT
+    from: 2020-03-08          # da verificare: prime partite di Serie A a porte chiuse
+    to: 2021-08-20            # da verificare: riapertura parziale a inizio 2021-22
+    capacity_share: 0.0
+    note: "Eccezioni con poche centinaia o mille spettatori tra settembre e ottobre 2020: da censire a parte."
+    evidence: []
+    verified: false
+
+  - id: it-2021-22-capienza-ridotta
+    country: IT
+    from: 2021-08-21          # da verificare
+    to: null                  # da suddividere: 50%, poi 75%, poi tetto di 5.000, poi di nuovo percentuali
+    capacity_share: 0.5
+    note: "Periodo da scomporre in voci separate prima di caricarlo."
+    evidence: []
+    verified: false

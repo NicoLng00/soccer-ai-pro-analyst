@@ -1,0 +1,26 @@
+# Partite non disputate alla data prevista e poi recuperate o ripetute per decisione degli organi.
+# Servono a due cose: non contare come "giocata" una partita mai iniziata e calcolare bene
+# riposo e calendario (la data vera è quella del recupero).
+version: 1
+entries:
+  - id: serie-a-2020-21-juventus-napoli
+    competition: serie_a
+    season: 2020-21
+    home: Juventus
+    away: Napoli
+    scheduled: 2020-10-04     # da verificare
+    played: 2021-04-07        # da verificare
+    reason: "Napoli non partito per disposizione dell'ASL; 3-0 a tavolino poi annullato dal Collegio di garanzia del CONI."
+    evidence: []
+    verified: false
+
+  - id: serie-a-2020-21-lazio-torino
+    competition: serie_a
+    season: 2020-21
+    home: Lazio
+    away: Torino
+    scheduled: 2021-03-02     # da verificare
+    played: 2021-05-18        # da verificare
+    reason: "Torino in isolamento per disposizione dell'ASL; 3-0 a tavolino poi annullato in appello."
+    evidence: []
+    verified: false

@@ -1,0 +1,56 @@
+# Installazione: uv run pre-commit install
+# Gli strumenti Python girano con le versioni bloccate in uv.lock (hook locali).
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: ["--maxkb=300"]
+        exclude: '^uv\.lock$'
+
+  - repo: local
+    hooks:
+      - id: no-env-files
+        name: blocca file .env
+        entry: "I file .env non vanno nel repository (solo .env.example)."
+        language: fail
+        files: '(^|/)\.env($|\.(?!example$))'
+
+      - id: no-data-files
+        name: blocca dati nel repository
+        entry: "I dati di terze parti non vanno nel repository: usa il raw store."
+        language: fail
+        files: '^data/|\.(parquet|duckdb|sqlite)$'
+
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+
+      - id: mypy
+        name: mypy src
+        entry: uv run mypy src
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: registry
+        name: valida il registro
+        entry: uv run sap registry validate
+        language: system
+        files: '^registry/'
+        pass_filenames: false

@@ -1,0 +1,47 @@
+# Segreti: mai nel repository
+.env
+.env.*
+!.env.example
+secrets/
+
+# Dati di terze parti e dati generati: mai nel repository
+data/
+*.parquet
+*.duckdb
+*.sqlite
+*.csv
+!tests/fixtures/**/*.csv
+!curation/**/*.csv
+
+# Report generati (resta la struttura delle cartelle)
+reports/**/*
+!reports/**/
+!reports/**/.gitkeep
+
+# Python e strumenti
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Dagster e MLflow locali
+.dagster/
+mlruns/
+mlartifacts/
+
+# Claude Code: impostazioni personali
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Sistema ed editor
+.DS_Store
+.idea/
+.vscode/
