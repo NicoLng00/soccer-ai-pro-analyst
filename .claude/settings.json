@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.py\""
+            "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.py\""
           }
         ]
       }
@@ -70,7 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-files.py\""
+            "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-files.py\""
           }
         ]
       },
@@ -79,7 +79,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.py\""
+            "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.py\""
           }
         ]
       }
@@ -90,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-python.py\""
+            "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-python.py\""
           }
         ]
       }
@@ -100,7 +100,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/quick-check.py\"",
+            "command": "uv run --no-project --quiet python \"$CLAUDE_PROJECT_DIR/.claude/hooks/quick-check.py\"",
             "timeout": 300
           }
         ]
