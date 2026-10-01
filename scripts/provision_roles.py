@@ -19,6 +19,7 @@ ROLES = {
     "SAP_DB_URL_OWNER": "sap_owner",
     "SAP_DB_URL_LIVE": "sap_live",
     "SAP_DB_URL_BACKFILL": "sap_backfill",
+    "SAP_DB_URL_REGISTRY": "sap_registry",
     "SAP_DB_URL_READONLY": "sap_readonly",
     "SAP_DB_URL_API": "sap_api",
     "SAP_DB_URL_USERADMIN": "sap_useradmin",
@@ -64,7 +65,7 @@ def main() -> None:
         conn.execute(
             sql.SQL(
                 "GRANT CONNECT, TEMPORARY ON DATABASE {} "
-                "TO sap_live, sap_backfill, sap_readonly, sap_api, sap_useradmin"
+                "TO sap_live, sap_backfill, sap_registry, sap_readonly, sap_api, sap_useradmin"
             ).format(db)
         )
         conn.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC")
