@@ -18,20 +18,12 @@ if [[ ! -f "$env_file" ]]; then
   exit 1
 fi
 
-# Valore di una chiave: ultima occorrenza, "export" ammesso, CR finale e virgolette esterne tolti.
-value_of() {
-  local line
-  line="$(grep -E "^[[:space:]]*(export[[:space:]]+)?$1=" "$env_file" | tail -n 1 || true)"
-  line="${line#*=}"
-  line="${line%$'\r'}"
-  if [[ "$line" =~ ^\"(.*)\"$ || "$line" =~ ^\'(.*)\'$ ]]; then
-    line="${BASH_REMATCH[1]}"
-  fi
-  printf '%s' "$line"
-}
+# Lettore condiviso con dev-up.sh: BOM, CRLF e ultima riga senza a capo gestiti.
+# shellcheck source=lib/dotenv.sh
+source scripts/lib/dotenv.sh
 
-sap_env="$(value_of SAP_ENV)"
-readonly_url="$(value_of SAP_DB_URL_READONLY)"
+sap_env="$(dotenv_get "$env_file" SAP_ENV)"
+readonly_url="$(dotenv_get "$env_file" SAP_DB_URL_READONLY)"
 if [[ -z "$sap_env" || -z "$readonly_url" ]]; then
   echo "$env_file deve definire SAP_ENV e SAP_DB_URL_READONLY." >&2
   exit 1
@@ -42,8 +34,7 @@ while IFS= read -r name; do
   unset "$name" 2>/dev/null || true
 done < <(
   {
-    grep -oE '^[[:space:]]*(export[[:space:]]+)?[A-Za-z_][A-Za-z0-9_]*=' "$env_file" \
-      | sed -E 's/^[[:space:]]*(export[[:space:]]+)?//; s/=$//' || true
+    dotenv_keys "$env_file"
     compgen -e | grep -E '^SAP_' || true
   } | sort -u
 )

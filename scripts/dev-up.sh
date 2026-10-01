@@ -8,10 +8,14 @@ if [[ ! -f .env ]]; then
   echo "Manca .env: esegui 'cp env.example .env' e cambia le password." >&2
   exit 1
 fi
-set -a
-# shellcheck disable=SC1091
-source .env
-set +a
+# .env si legge come testo, non si esegue (BOM, CRLF e ultima riga senza a capo gestiti).
+# shellcheck source=lib/dotenv.sh
+source scripts/lib/dotenv.sh
+if ! dotenv_check .env env.example; then
+  echo "Correggi .env confrontandolo con env.example (sopra solo i nomi, mai i valori)." >&2
+  exit 1
+fi
+dotenv_export .env
 
 docker compose up -d --wait postgres
 docker compose up -d s3
